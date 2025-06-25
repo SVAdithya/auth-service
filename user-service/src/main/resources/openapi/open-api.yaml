@@ -1,0 +1,348 @@
+openapi: 3.0.3
+info:
+  title: Auth Server API
+  version: 1.0.0
+tags:
+  - name: Auth
+  - name: OAuth2
+  - name: Registration
+  - name: Password
+  - name: Token
+  - name: Admin
+  - name: Config
+  - name: Misc
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      tags: [ Auth ]
+      summary: Login with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: JWT or OAuth token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [ Auth ]
+      summary: Logout user
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Logout successful
+
+  /auth/refresh-token:
+    post:
+      operationId: refreshToken
+      tags: [ Auth ]
+      summary: Refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+      responses:
+        '200':
+          description: New token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [ Auth ]
+      summary: Get current user
+      responses:
+        '200':
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /oauth2/authorize/{provider}:
+    get:
+      tags: [ OAuth2 ]
+      summary: Redirect to social provider
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirected to provider
+
+  /oauth2/callback/{provider}:
+    get:
+      tags: [ OAuth2 ]
+      summary: Handle social login callback
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Auth token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /oauth2/providers:
+    get:
+      tags: [ OAuth2 ]
+      summary: List available social providers
+      responses:
+        '200':
+          description: Supported providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /auth/register:
+    post:
+      tags: [ Registration ]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+      responses:
+        '200':
+          description: Registration successful
+
+  /auth/verify-email:
+    post:
+      tags: [ Registration ]
+      summary: Verify email with token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Email verified
+
+  /auth/forgot-password:
+    post:
+      tags: [ Password ]
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Email sent
+
+  /auth/reset-password:
+    post:
+      tags: [ Password ]
+      summary: Reset password using token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successful
+  /user/changePassword:
+    post:
+      summary: Change user password
+      description: Allows a user to change their password by providing the current and new passwords.
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                  description: The user's current password
+                  example: "oldPassword123"
+                newPassword:
+                  type: string
+                  description: The user's new password
+                  example: "newPassword123"
+              required:
+                - currentPassword
+                - newPassword
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password changed successfully"
+        '400':
+          description: Invalid input or password does not meet security requirements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Password does not meet security requirements"
+        '401':
+          description: Unauthorized (if user is not authenticated)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Authentication required"
+        '403':
+          description: Forbidden (if user is not allowed to change the password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You do not have permission to change the password"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "An error occurred while changing the password"
+  /auth/token:
+    post:
+      tags: [ Token ]
+      summary: Get token with credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    RegistrationRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+
+    ResetPasswordRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+
+    TokenRequest:
+      type: object
+      properties:
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        grantType:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+        expiresIn:
+          type: integer
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string

@@ -23,6 +23,7 @@
 	</developers>
 	<modules>
 		<module>app-service</module>
+		<module>user-service</module>
 	</modules>
 	<scm>
 		<connection/>

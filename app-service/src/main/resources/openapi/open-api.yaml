@@ -83,6 +83,9 @@ components:
 
     TokenResponse:
       type: object
+      required:
+        - accessToken
+        - refreshToken
       properties:
         accessToken:
           type: string

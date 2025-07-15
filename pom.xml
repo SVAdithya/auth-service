@@ -22,7 +22,7 @@
 		<developer/>
 	</developers>
 	<modules>
-		<module>app-service</module>
+		<module>token-service</module>
 		<module>user-service</module>
 	</modules>
 	<scm>

@@ -1,5 +1,7 @@
 package com.app.auth.exception;
 
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +14,22 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity<Object> handleRateLimitExceeded(RequestNotPermitted ex) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set("Retry-After", "1");
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "Too Many Requests");
+        body.put("message", "Rate limit exceeded. Please try again later.");
+        body.put("status", HttpStatus.TOO_MANY_REQUESTS.value());
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .headers(responseHeaders)
+                .body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();

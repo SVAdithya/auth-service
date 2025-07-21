@@ -19,7 +19,7 @@ public class AuthController implements AuthApi{
     public ResponseEntity<TokenResponse> authLoginPost(LoginRequest loginRequest) {
         return ResponseEntity.ok(new TokenResponse(
                 UUID.randomUUID().toString(),
-                UUID.fromString(loginRequest.getUsername()).toString()
+                UUID.nameUUIDFromBytes(loginRequest.getUsername().getBytes()).toString()  
         ));
     }
 

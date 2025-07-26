@@ -87,6 +87,11 @@
 			<version>0.2.6</version> <!-- Check for the latest version -->
 		</dependency>
 
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>openapi-generator</artifactId>
+			<version>7.0.1</version>
+		</dependency>
 		<!-- Jakarta Validation API -->
 		<dependency>
 			<groupId>jakarta.validation</groupId>

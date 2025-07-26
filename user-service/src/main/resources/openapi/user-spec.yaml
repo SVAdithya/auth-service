@@ -1,0 +1,672 @@
+openapi: 3.0.3
+info:
+  title: User Profile Service API
+  description: API for managing user accounts, profiles, SSO, MFA, and related features
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+security:
+  - bearerAuth: []
+paths:
+  /api/users:
+    post:
+      summary: Create a new user
+      operationId: createUser
+      tags:
+        - User Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+    get:
+      summary: List all users
+      operationId: listUsers
+      tags:
+        - User Management
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/users/{id}:
+    get:
+      summary: Get user by ID
+      operationId: getUserById
+      tags:
+        - User Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+    put:
+      summary: Update a user
+      operationId: updateUser
+      tags:
+        - User Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+    delete:
+      summary: Delete a user
+      operationId: deleteUser
+      tags:
+        - User Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/users/{id}/profile:
+    get:
+      summary: Get user profile
+      operationId: getUserProfile
+      tags:
+        - Profile Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+    put:
+      summary: Update user profile
+      operationId: updateUserProfile
+      tags:
+        - Profile Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfileRequest'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/users/{id}/mfa:
+    post:
+      summary: Enable MFA for a user
+      operationId: enableMfa
+      tags:
+        - MFA Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableMfaRequest'
+      responses:
+        '200':
+          description: MFA enabled, returns QR code or setup details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaSetupResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+    delete:
+      summary: Disable MFA for a user
+      operationId: disableMfa
+      tags:
+        - MFA Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: MFA disabled
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/users/{id}/mfa/verify:
+    post:
+      summary: Verify MFA code
+      operationId: verifyMfa
+      tags:
+        - MFA Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyMfaRequest'
+      responses:
+        '200':
+          description: MFA code verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyMfaResponse'
+        '400':
+          description: Invalid MFA code
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/users/{id}/status:
+    put:
+      summary: Update user account status
+      operationId: updateUserStatus
+      tags:
+        - User Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserStatusRequest'
+      responses:
+        '200':
+          description: User status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/users/{id}/preferences:
+    put:
+      summary: Update user preferences
+      operationId: updateUserPreferences
+      tags:
+        - User Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPreferencesRequest'
+      responses:
+        '200':
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/auth/password/reset-request:
+    post:
+      summary: Request password reset
+      operationId: requestPasswordReset
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '202':
+          description: Password reset request accepted, email sent
+        '404':
+          description: User not found
+      security: []
+  /api/auth/password/reset:
+    post:
+      summary: Reset password
+      operationId: resetPassword
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          description: Invalid reset token
+      security: []
+  /api/users/{id}/mfa/reset:
+    post:
+      summary: Request MFA reset
+      operationId: requestMfaReset
+      tags:
+        - MFA Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: MFA reset request accepted, email sent
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+  /api/auth/login:
+    post:
+      summary: User login with SSO
+      operationId: login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful, returns JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+      security: []
+  /api/users/{id}/audit:
+    get:
+      summary: Get user audit logs
+      operationId: getUserAuditLogs
+      tags:
+        - Audit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Audit logs for the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLogResponse'
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+        - email
+        - name
+        - password
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+        createdAt:
+          type: string
+          format: date-time
+        mfaEnabled:
+          type: boolean
+    UserProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            postalCode:
+              type: string
+            country:
+              type: string
+        preferences:
+          type: object
+          properties:
+            emailNotifications:
+              type: boolean
+            smsNotifications:
+              type: boolean
+    UpdateUserProfileRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            postalCode:
+              type: string
+            country:
+              type: string
+        preferences:
+          type: object
+          properties:
+            emailNotifications:
+              type: boolean
+            smsNotifications:
+              type: boolean
+    EnableMfaRequest:
+      type: object
+      properties:
+        mfaType:
+          type: string
+          enum: [TOTP, SMS]
+        phoneNumber:
+          type: string
+      required:
+        - mfaType
+    MfaSetupResponse:
+      type: object
+      properties:
+        qrCode:
+          type: string
+          description: Base64-encoded QR code for TOTP setup
+        secret:
+          type: string
+          description: TOTP secret key
+    VerifyMfaRequest:
+      type: object
+      properties:
+        code:
+          type: string
+      required:
+        - code
+    VerifyMfaResponse:
+      type: object
+      properties:
+        verified:
+          type: boolean
+    UpdateUserStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+      required:
+        - status
+    UpdateUserPreferencesRequest:
+      type: object
+      properties:
+        emailNotifications:
+          type: boolean
+        smsNotifications:
+          type: boolean
+    PasswordResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+      required:
+        - email
+    ResetPasswordRequest:
+      type: object
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+      required:
+        - token
+        - newPassword
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        mfaCode:
+          type: string
+          description: Optional MFA code if MFA is enabled
+      required:
+        - email
+        - password
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for SSO
+        requiresMfa:
+          type: boolean
+          description: Indicates if MFA verification is required
+    AuditLogResponse:
+      type: object
+      properties:
+        eventId:
+          type: string
+        eventType:
+          type: string
+        userId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+          additionalProperties:
+            type: string

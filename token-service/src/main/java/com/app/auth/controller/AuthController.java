@@ -17,10 +17,7 @@ public class AuthController implements AuthApi{
 
     @Override
     public ResponseEntity<TokenResponse> authLoginPost(LoginRequest loginRequest) {
-        return ResponseEntity.ok(new TokenResponse(
-                UUID.randomUUID().toString(),
-                UUID.nameUUIDFromBytes(loginRequest.getUsername().getBytes()).toString()  
-        ));
+        return ResponseEntity.ok(authService.login(loginRequest.getUsername()));
     }
 
     @Override

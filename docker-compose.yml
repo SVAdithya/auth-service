@@ -43,8 +43,15 @@ services:
       context: ./token-service
       dockerfile: Dockerfile
     container_name: token-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     ports:
       - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - auth-network
     healthcheck:
@@ -60,8 +67,15 @@ services:
       context: ./user-service
       dockerfile: Dockerfile
     container_name: user-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     ports:
       - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - auth-network
     healthcheck:

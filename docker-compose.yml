@@ -21,6 +21,24 @@ services:
       timeout: 10s
       retries: 3
 
+  # MongoDB for SSO data
+  mongodb:
+    image: mongo:7.0
+    container_name: auth-mongodb
+    environment:
+      MONGO_INITDB_DATABASE: sso_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - auth-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Redis for caching and session management
   redis:
     image: redis:7-alpine
@@ -80,6 +98,38 @@ services:
       - auth-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # SSO Service
+  sso-service:
+    build:
+      context: ./sso-service
+      dockerfile: Dockerfile
+    container_name: sso-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - MICROSOFT_CLIENT_ID=${MICROSOFT_CLIENT_ID}
+      - MICROSOFT_CLIENT_SECRET=${MICROSOFT_CLIENT_SECRET}
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - auth-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -149,3 +199,4 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
+  mongodb_data:

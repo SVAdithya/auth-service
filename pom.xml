@@ -24,6 +24,7 @@
 	<modules>
 		<module>token-service</module>
 		<module>user-service</module>
+        <module>sso-service</module>
 	</modules>
 	<scm>
 		<connection/>

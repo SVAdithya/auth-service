@@ -1,9 +1,11 @@
 package com.app.auth.controller;
 
 import com.app.auth.application.command.CreateUserCommand;
+import com.app.auth.application.command.UpdateUserCommand;
 import com.app.auth.application.handler.CreateUserCommandHandler;
 import com.app.auth.application.handler.GetUserQueryHandler;
 import com.app.auth.application.handler.GetUsersQueryHandler;
+import com.app.auth.application.handler.UpdateUserCommandHandler;
 import com.app.auth.application.query.GetUserQuery;
 import com.app.auth.application.query.GetUsersQuery;
 import com.app.auth.domain.model.User;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class UserManagementController implements UserManagementApi {
 
     private final CreateUserCommandHandler createUserHandler;
+    private final UpdateUserCommandHandler updateUserHandler;
     private final GetUserQueryHandler getUserHandler;
     private final GetUsersQueryHandler getUsersHandler;
     private final UserResponseMapper userResponseMapper;
@@ -74,16 +77,17 @@ public class UserManagementController implements UserManagementApi {
 
     @Override
     public ResponseEntity<UserResponse> updateUser(String id, UpdateUserRequest updateUserRequest) {
-        UserResponse userResponse = new UserResponse()
-                .id(id)
-                .email(updateUserRequest.getEmail())
-                .name(updateUserRequest.getName())
-                .roles(updateUserRequest.getRoles())
-                .status(UserResponse.StatusEnum.ACTIVE)
-                .createdAt(OffsetDateTime.now())
-                .mfaEnabled(false);
+        UpdateUserCommand command = new UpdateUserCommand(
+                id,
+                updateUserRequest.getEmail(),
+                updateUserRequest.getName(),
+                updateUserRequest.getRoles()
+        );
 
-        return ResponseEntity.ok(userResponse);
+        User updatedUser = updateUserHandler.handle(command);
+        UserResponse response = userResponseMapper.toResponse(updatedUser);
+
+        return ResponseEntity.ok(response);
     }
 
     @Override

@@ -1,25 +1,39 @@
 package com.app.auth.controller;
 
+import com.app.auth.application.handler.ValidateUserCredentialsQueryHandler;
+import com.app.auth.application.query.ValidateUserCredentialsQuery;
 import com.app.user.api.AuthenticationApi;
 import com.app.user.model.LoginRequest;
 import com.app.user.model.LoginResponse;
 import com.app.user.model.PasswordResetRequest;
 import com.app.user.model.ResetPasswordRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class AuthenticationController implements AuthenticationApi {
+
+    private final ValidateUserCredentialsQueryHandler validateCredentialsHandler;
 
     @Override
     public ResponseEntity<LoginResponse> login(LoginRequest loginRequest) {
-        // TODO: Implement credential validation logic
-        // This should only validate username/password
-        // Token generation happens in token-service
+        // Validate user credentials
+        ValidateUserCredentialsQuery query = new ValidateUserCredentialsQuery(
+                loginRequest.getEmail(),
+                loginRequest.getPassword()
+        );
 
-        // For now, returning basic response without token
-        // In real implementation, this would validate credentials and return user info
+        boolean credentialsValid = validateCredentialsHandler.handle(query);
+
+        if (!credentialsValid) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Credentials are valid - return login response
+        // Token generation should happen in token-service
         LoginResponse loginResponse = new LoginResponse()
                 .requiresMfa(false); // No token field populated
 

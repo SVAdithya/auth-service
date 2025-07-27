@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -50,6 +53,26 @@ public class User {
     @Column(name = "mfa_enabled", nullable = false)
     private boolean mfaEnabled;
 
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "street", column = @Column(name = "address_street")),
+            @AttributeOverride(name = "city", column = @Column(name = "address_city")),
+            @AttributeOverride(name = "state", column = @Column(name = "address_state")),
+            @AttributeOverride(name = "postalCode", column = @Column(name = "address_postal_code")),
+            @AttributeOverride(name = "country", column = @Column(name = "address_country"))
+    })
+    private UserAddress address;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "emailNotifications", column = @Column(name = "pref_email_notifications")),
+            @AttributeOverride(name = "smsNotifications", column = @Column(name = "pref_sms_notifications"))
+    })
+    private UserPreferences preferences;
+
     // Factory method for creating new user
     public static User create(String email, String name, String passwordHash, List<String> roles) {
         OffsetDateTime now = OffsetDateTime.now();
@@ -62,7 +85,10 @@ public class User {
                 UserStatus.ACTIVE,
                 now,
                 now,
-                false
+                false,
+                null,
+                null,
+                null
         );
     }
 
@@ -77,7 +103,10 @@ public class User {
                 existing.status,
                 existing.createdAt,
                 OffsetDateTime.now(),
-                existing.mfaEnabled
+                existing.mfaEnabled,
+                existing.phone,
+                existing.address,
+                existing.preferences
         );
     }
 
@@ -92,7 +121,10 @@ public class User {
                 status,
                 existing.createdAt,
                 OffsetDateTime.now(),
-                existing.mfaEnabled
+                existing.mfaEnabled,
+                existing.phone,
+                existing.address,
+                existing.preferences
         );
     }
 
@@ -107,7 +139,10 @@ public class User {
                 existing.status,
                 existing.createdAt,
                 OffsetDateTime.now(),
-                mfaEnabled
+                mfaEnabled,
+                existing.phone,
+                existing.address,
+                existing.preferences
         );
     }
 
